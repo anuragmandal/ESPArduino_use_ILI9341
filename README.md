@@ -12,9 +12,8 @@ XPT2046_Touchscreen by Paul Stoffregen v1.4
 
 
 Pint outs with respect to ESP WROOM-32
----------------------------------
+
 LCD  ILI9341      ESP32 GPIO
----------------------------------
 TFT_SCK            18
 TFT_MOSI           23
 TFT_MISO           19
@@ -22,9 +21,8 @@ TFT_CS             22
 TFT_DC             21
 TFT_RESET          17
 
----------------------------------
+
 Touch XPT2046     ESP32 GPIO
----------------------------------
 TOUCH_CS           33
 TOUCH_IRQ          36
 TFT_SCK            18
