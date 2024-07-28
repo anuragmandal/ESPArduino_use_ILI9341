@@ -3,11 +3,14 @@ It has some commented code in Display.cpp as of now to show emojis reaction for 
 
 Use hardware:
 ESP32 ESP WROOM-32
+
 LCD display ILI9341
 
 Use dependencies libraries:
 ESP32 version : 3.0.3
+
 GFX Library for Arduino v1.4.7
+
 XPT2046_Touchscreen by Paul Stoffregen v1.4
 
 -----------------------------------------
