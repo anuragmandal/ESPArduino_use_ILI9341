@@ -13,34 +13,46 @@ void initializeTouch(void )
   
 }
 
-
-int detectTouch(AppState* currentState)
+void detectTouchTask(void *pvParameters)
 {
-  if (ts.tirqTouched() && ts.touched()) {
-    TS_Point p = ts.getPoint();
- 
-    p.x = map(p.x, 3800, 200, 0, 240);
-    p.y = map(p.y, 200, 3800, 0, 320);
-    Serial.print("X = "); Serial.print(p.x); Serial.print(", Y = "); Serial.println(p.y);
-    if (*currentState == MAIN_MENU) 
-    {
-      if (p.x >= 10 && p.x <= 80 && p.y >= 250 && p.y <= 313) {
-          *currentState = MANUAL_PAGE;
-      } else if (p.x >= 90 && p.x <= 155 && p.y >= 250 && p.y <= 310) {
-          *currentState = SCHEDULE_PAGE;
-      } else if (p.x >= 165 && p.x <= 225 && p.y >= 250 && p.y <= 309) {
-          *currentState = SETTINGS_PAGE;
-      }
-    } 
-    else if (*currentState == SETTINGS_PAGE) 
-    {
-      if (p.x >= 0 && p.x <= 240 && p.y >= 0 && p.y <= 320) {
-          *currentState = MAIN_MENU;
-      }
-    }
+  AppState* currentState = (AppState*)pvParameters;
+  PageEvent event = EVENT_NONE;
 
-    return 1;
+  while (true) {
+    if (ts.tirqTouched() && ts.touched()) {
+      TS_Point p = ts.getPoint();
+  
+      p.x = map(p.x, 3800, 200, 0, 240);
+      p.y = map(p.y, 200, 3800, 0, 320);
+      Serial.print("X = "); Serial.print(p.x); Serial.print(", Y = "); Serial.println(p.y);
+      if (*currentState == MAIN_MENU) 
+      {
+        if (p.x >= 180 && p.x <= 220 && p.y >= 41 && p.y <= 66) {
+            event = EVENT_MANUAL_PAGE;
+            Serial.println("Mannual Page");
+        } else if (p.x >= 180 && p.x <= 210 && p.y >= 140 && p.y <= 187) {
+            event = EVENT_SCHEDULE_PAGE;
+            Serial.println("SCHEDULE_PAGE");
+        } else if (p.x >= 165 && p.x <= 225 && p.y >= 250 && p.y <= 309) {
+            event = EVENT_SETTINGS_PAGE;
+            Serial.println("SETTINGS_PAGE");
+        }
+      } 
+      else if (*currentState == SETTINGS_PAGE) 
+      {
+        if (p.x >= 0 && p.x <= 240 && p.y >= 0 && p.y <= 320) {
+            event = EVENT_MAIN_MENU;
+            Serial.println("MAIN_MENU");
+        }
+      }
+
+    // Send the event to the queue if a valid event occurred
+        if (event != EVENT_NONE) {
+          xQueueSend(touchEventQueue, &event, portMAX_DELAY);
+          event = EVENT_NONE;  // Reset event after sending
+        }
+    }
+    vTaskDelay(50 / portTICK_PERIOD_MS);
   }
-  return 0;
 }
 
