@@ -15,17 +15,22 @@ void initializeTouch(void )
 
 void detectTouchTask(void *pvParameters)
 {
-  AppState* currentState = (AppState*)pvParameters;
+  
+  #if 1
+  AppState currentState = *((AppState*)pvParameters);
+  Serial.print("Current state= ");Serial.print(currentState );
   PageEvent event = EVENT_NONE;
 
   while (true) {
+    
     if (ts.tirqTouched() && ts.touched()) {
       TS_Point p = ts.getPoint();
   
       p.x = map(p.x, 3800, 200, 0, 240);
       p.y = map(p.y, 200, 3800, 0, 320);
       Serial.print("X = "); Serial.print(p.x); Serial.print(", Y = "); Serial.println(p.y);
-      if (*currentState == MAIN_MENU) 
+ 
+      if (currentState == MAIN_MENU) 
       {
         if (p.x >= 180 && p.x <= 220 && p.y >= 41 && p.y <= 66) {
             event = EVENT_MANUAL_PAGE;
@@ -38,7 +43,7 @@ void detectTouchTask(void *pvParameters)
             Serial.println("SETTINGS_PAGE");
         }
       } 
-      else if (*currentState == SETTINGS_PAGE) 
+      else if (currentState == SETTINGS_PAGE) 
       {
         if (p.x >= 0 && p.x <= 240 && p.y >= 0 && p.y <= 320) {
             event = EVENT_MAIN_MENU;
@@ -52,7 +57,9 @@ void detectTouchTask(void *pvParameters)
           event = EVENT_NONE;  // Reset event after sending
         }
     }
-    vTaskDelay(50 / portTICK_PERIOD_MS);
+    
+    vTaskDelay(100 / portTICK_PERIOD_MS);
   }
+  #endif
 }
 

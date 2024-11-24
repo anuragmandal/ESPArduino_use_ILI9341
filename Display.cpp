@@ -265,6 +265,12 @@ Arduino_ESP32SPI bus = Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCK, TFT_MOSI, TFT_M
 
 Arduino_ILI9341 display = Arduino_ILI9341(&bus, TFT_RESET);
 
+// Keyboard layout
+#define NUM_KEYS 12
+const char *keys[NUM_KEYS] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "<-", "OK"};
+int keyWidth = 50, keyHeight = 40;
+int keyRows = 3, keyCols = 4;
+
 void initializeDisplay() {
     display.begin();
    // display.setRotation(3);
@@ -278,7 +284,7 @@ void cleanDisplay()
 
 void displayText(int x, int y, const char* text, uint16_t color) {
     display.setCursor(x, y);
-    display.setTextColor(color);
+    display.setTextColor(color,BLACK);
     display.setTextSize(2);
     display.print(text);
 }
@@ -288,6 +294,36 @@ void draw16bitRGB(int16_t x,int16_t y,const uint16_t * bitmap,int16_t w,int16_t 
 {
    display.draw16bitRGBBitmap(x, y, bitmap , w, h);
    //display.draw16bitRGBBitmap(0, 0, face_18 , 256, 256);//720 900
+}
+
+void drawKeyboard()
+{
+  // Draw the keyboard
+    int xOffset = 10, yOffset = 160;
+    int spacing = 5;
+
+    display.fillScreen(BLACK); // Clear screen
+    display.setTextSize(2);
+
+    for (int i = 0; i < keyRows; i++) {
+        for (int j = 0; j < keyCols; j++) {
+            int keyIndex = i * keyCols + j;
+            if (keyIndex >= NUM_KEYS) break;
+
+            int x = xOffset + j * (keyWidth + spacing);
+            int y = yOffset + i * (keyHeight + spacing);
+
+            // Draw button
+            display.fillRect(x, y, keyWidth, keyHeight, BLUE);
+            display.drawRect(x, y, keyWidth, keyHeight, WHITE);
+
+            // Draw key label
+            display.setCursor(x + keyWidth / 4, y + keyHeight / 4);
+            display.setTextColor(WHITE);
+            display.print(keys[keyIndex]);
+        }
+    }
+
 }
 
 void updateLCD(AppState currentState) {
@@ -315,9 +351,22 @@ void updateLCD(AppState currentState) {
   // Add other states here (like SETTINGS_PAGE, MANUAL_PAGE, etc.)
   else if (currentState == SETTINGS_PAGE) {
      cleanDisplay();
-     draw16bitRGB(165, 250, settings, 60, 59); // Position and size for Settings Page button
-    // Display specific data or interface for settings
-    // For example: Display settings options, navigation buttons, etc.
+     //displayText(10, 250, "Settings Page", WHITE); 
+    //Look If we add Start Time and End time here
+    drawKeyboard();
+  }
+
+    // Add other states here (like SETTINGS_PAGE, MANUAL_PAGE, etc.)
+  else if (currentState == SCHEDULE_PAGE) {
+     cleanDisplay();
+     displayText(10, 250, "Schedule Page", GREEN); 
+ 
+  }
+  // Add other states here (like SETTINGS_PAGE, MANUAL_PAGE, etc.)
+  else if (currentState == MANUAL_PAGE) {
+     cleanDisplay();
+     displayText(10, 250, "Mannual Page", RED); 
+ 
   }
 }
 
@@ -334,15 +383,19 @@ void pageEventHandlerTask(void* pvParameters) {
       switch (receivedEvent) {
         case EVENT_MANUAL_PAGE:
           *currentState = MANUAL_PAGE;
+          Serial.println("Mannual Page inside Queue Receive to update LCD");
           break;
         case EVENT_SCHEDULE_PAGE:
           *currentState = SCHEDULE_PAGE;
+          Serial.println("Schedule Page inside Queue Receive to update LCD");
           break;
         case EVENT_SETTINGS_PAGE:
           *currentState = SETTINGS_PAGE;
+           Serial.println("Settings Page inside Queue Receive to update LCD");
           break;
         case EVENT_MAIN_MENU:
           *currentState = MAIN_MENU;
+          Serial.println("MAin Menu inside Queue Receive to update LCD");
           break;
         default:
           break;
